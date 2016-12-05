@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var configAuth = require('./config/auth');
 
 
 var port = process.env.PORT || 4000;
@@ -22,7 +23,7 @@ if (app.get("env") === "development") {
 }
 
 // connect to database
-app.db = mongoose.connect(process.env.MONGODB_URI);
+app.db = mongoose.connect(process.env.MONGODB_URI || configAuth.MONGODB_URI);
 
 // view engine setup - this app uses Hogan-Express
 // https://github.com/vol4ok/hogan-express

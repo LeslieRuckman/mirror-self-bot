@@ -9,15 +9,10 @@ var request = require('request');
 // var graph = require('fbgraph');
 var fs = require('fs');
 var T;
-// Twilio
 var twilio = require('twilio');
-// Geocoder - we may not need this, but it could be cool?
 var geocoder = require('geocoder');
-// Tracery
 var tracery = require('tracery-grammar');
-// NLP Compromise
 var nlp = require('nlp_compromise');
-// our db model
 var Status = require("../models/status.js");
 
 var tweet;
@@ -40,12 +35,6 @@ var whenSentence;
 var whySentence;
 var howSentence;
 
-/**
- * GET '/'
- * Default home route. Just relays a success message back.
- * @param  {Object} req
- * @return {Object} json
- */
 router.get('/twilioJSON', function(req, res) {
 
     var jsonData = {
@@ -73,9 +62,9 @@ router.get('/login', function(req, res, next) {
 
 router.get('/profile', isLoggedIn, function(req, res) {
 
-    // THE FACEBOOK STUFF //
+  // THE FACEBOOK STUFF //
 
-    console.log('LOGGED INTO FACEBOOK');
+    // console.log('LOGGED INTO FACEBOOK');
     // console.log(req.user.facebook.id);
     // console.log(req.user.facebook.token);
 
@@ -99,53 +88,71 @@ router.get('/profile', isLoggedIn, function(req, res) {
     //   console.log(res);
     // });
 
-    // THE TWITTER STUFF //
+  // THE TWITTER STUFF //
 
-    console.log('LOGGED INTO TWITTER');
+    console.log('GETTING TWITTER DATA');
 
     T = new Twit({
-        consumer_key: configAuth.twitterAuth.consumerKey,
-        consumer_secret: configAuth.twitterAuth.consumerSecret,
-        access_token: req.user.twitter.token,
-        access_token_secret: req.user.twitter.tokenSecret,
+      consumer_key: configAuth.twitterAuth.consumerKey,
+      consumer_secret: configAuth.twitterAuth.consumerSecret,
+      access_token: req.user.twitter.token,
+      access_token_secret: req.user.twitter.tokenSecret,
     })
 
     var userName = req.user.twitter.username;
 
-    //one issue: twit limits you to 200 tweets
+
+    T.get('friends/list', {
+      screen_name: userName },
+      function (err, data, response) {
+        for (i = 0; i < data.users.length; i++) {
+          var name = data.users[i].name;
+          var location = data.users[i].location;
+          peopleList.push(name);
+          placesList.push(location);
+        }
+      })
+
     T.get('statuses/user_timeline', {
         screen_name: userName,
         include_rts: 'false',
-        count: 200
+        count: 1000
     }, function(err, data, response) {
 
         // go through my tweets
 
         for (i = 0; i < data.length; i++) {
-            var tweeter = data[i].text;
-            // console.log(tweeter);
+          tweet = data[i].text;
 
             // CLEAN THE TWEETS
-            // *****TO DO: Fix the @ clean up
-            // *****TO DO: Fix the utf-8 encoding
 
-            if (tweeter.includes("@")) {
-                tweet = tweeter.replace(/@\S+\s/g, '');
-            } else if (tweeter.includes(".@")) {
-                tweet = tweeter.replace(/.@\S+\s/g, '');
-            } else {
-              tweet = tweeter;
+            if (tweet.includes("@")) {
+              tweet = tweet.replace(/@\S+\s/g, '');
+              lowercase(tweet);
             }
 
-            if (tweeter.includes("http")) {
-                tweet = tweeter.replace(/http\S+/g, '');
-            } else {
-              tweet = tweeter;
+            if (tweet.includes("http")) {
+              tweet = tweet.replace(/http\S+/g, '');
+              lowercase(tweet);
             }
-            //
-            // console.log(tweet);
 
-            // tweetsList.push(tweet);
+            if (tweet.includes("&amp;")) {
+              tweet = tweet.replace(/&amp;/g, '&');
+              lowercase(tweet);
+            }
+
+            if (tweet.includes("&lt;3")) {
+              tweet = tweet.replace(/&lt;3/g, '');
+              lowercase(tweet);
+            }
+
+            lowercase(tweet);
+
+            tweetsList.push(tweet);
+
+            function lowercase(string) {
+              return string.charAt(0).toLowerCase() + string.slice(1);
+            }
 
             // List of people
             var person = nlp.text(tweet).people()[0];
@@ -153,7 +160,11 @@ router.get('/profile', isLoggedIn, function(req, res) {
                 var people = (person.text).replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
                 if (people !== "I") {
                     if (people !== "you") {
-                        peopleList.push(people);
+                      if (people !== "He") {
+                        if (people !== "you're") {
+                          peopleList.push(people);
+                        }
+                      }
                     }
                 }
             }
@@ -162,7 +173,9 @@ router.get('/profile', isLoggedIn, function(req, res) {
             var nouns = nlp.text(tweet).nouns();
             for (k = 0; k < nouns.length; k++) {
                 var noun = nouns[k].text
-                nounList.push(noun);
+                if (noun !== "I") {
+                  nounList.push(noun);
+                }
             }
 
             // List of times
@@ -177,11 +190,12 @@ router.get('/profile', isLoggedIn, function(req, res) {
             var place = nlp.text(tweet).places()[0];
             if (place !== undefined) {
                 var places = (place.text).replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                var genericplaces = ["New York", "New York City", "Berlin", "New Jersey", "Florida", "Brooklyn", "Over there", "United States", "U.S.A"]
                 placesList.push(places);
             }
 
             // WHY?
-            if (tweet.includes("because") | tweet.includes("Because") | tweet.includes("due to") | tweet.includes("explains") | tweet.includes("I don't know")) {
+            if (tweet.includes("because") | tweet.includes("Because") | tweet.includes("explains") | tweet.includes("I don't know")) {
                 whyList.push(tweet);
             }
 
@@ -201,11 +215,8 @@ router.get('/profile', isLoggedIn, function(req, res) {
             }
 
         }
-        console.log(timeList);
-        console.log(peopleList);
-        console.log(nounList);
-        console.log(placesList);
-        console.log(tweetsList);
+
+        parseResponse();
     })
 
     res.render('profile.ejs', {
@@ -217,6 +228,7 @@ router.get('/logout', function(req, res) {
   req.logout(),
   res.redirect('/');
 });
+
 router.post('/login', passport.authenticate('local-login', {
   successRedirect: '/',
   failureRedirect: '/',
@@ -243,85 +255,119 @@ function isLoggedIn(req, res, next) {
       return next();
   res.redirect('/');
 }
-// simple route to show an HTML page
-// router.get('/sample-page', function(req,res){
-//   res.render('sample.html')
-// })
 
-// TAKING TRACERY SCRIPT TAG FROM BECCA'S CODE - LINE 67 of index.js
 function parseResponse(resp) {
-  // var tweetsList = [];
-  // var peopleList = [];
-  // var placesList = [];
-  // var timeList = [];
-  // var nounList = [];
-  // var whyList = [];
-  // var howList = [];
-  // var thinkList = [];
-  // var feelList = [];
+  console.log('MAKING RESPONSE');
 
-    //the who is an array of names - add the nouns to a tracery grammar
-    var whoSyntax = {
-        "sentence": ["Oh, it's probably #name#."],
-        "name": peopleList
+  randomTweet();
+  constructWho();
+  constructWhat();
+  constructWhen();
+  constructWhere();
+  constructWhy();
+  constructHow();
+
+  function uppercase(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  // RANDOM TWEET
+  function randomTweet() {
+    var randomSyntax = {
+      "sentence": ["#randomTweet#. What do you think?"],
+      "randomTweet": tweetsList
     };
-    var whoGrammar = createGrammar(whoSyntax);
-    whoGrammar.addModifiers(baseEngModifiers);
-    whoSentence = whoGrammar.flatten('#sentence#')
+    var randomGrammar = tracery.createGrammar(randomSyntax);
+    randomSentence = uppercase(randomGrammar.flatten('#sentence#'));
+    console.log(randomSentence)
+    return randomSentence;
+  }
+
+  // WHO?
+  function constructWho() {
+    var whoSyntax = {
+      "sentence": ["Yeah it's #name#. Why do you ask?", "I think #name#.", "#name#. Why?", "#name#?", "I'm guessing #name#. Why?", "#randomTweet#. Why do you ask?"],
+      "name": peopleList,
+      "randomTweet": tweetsList
+    };
+    var whoGrammar = tracery.createGrammar(whoSyntax);
+    whoSentence = uppercase(whoGrammar.flatten('#sentence#'));
     console.log(whoSentence)
     return whoSentence;
+  }
 
+  // WHAT?
+  function constructWhat() {
     var whatSyntax = {
-        "sentence": ["It is a #noun#. I see a #noun#."],
-        "noun": nounList
+      "sentence": ["#noun#", "A #noun#. What do you think?", "#noun#. #randomTweet#", "#feelTweet#. And you?", "#thinkTweet#", "#randomTweet#. What's your take?"],
+      "noun": nounList,
+      "feelTweet": feelList,
+      "thinkTweet": thinkList,
+      "randomTweet": tweetsList
     };
-    var whatGrammar = createGrammar(whatSyntax);
-    whatGrammar.addModifiers(baseEngModifiers);
-    whatSentence = whatGrammar.flatten('#sentence#')
-    console.log(whatSentence)
+    var whatGrammar = tracery.createGrammar(whatSyntax);
+    whatSentence = uppercase(whatGrammar.flatten('#sentence#'));
+    console.log(whatSentence);
     return whatSentence;
+  }
 
-    var whereSyntax = {
-        "sentence": ["Could it be #place#?"],
-        "place": placesList
-    };
-    var whereGrammar = createGrammar(whereSyntax);
-    whereGrammar.addModifiers(baseEngModifiers);
-    whereSentence = whereGrammar.flatten('#sentence#')
-    console.log(whereSentence)
-    return whereSentence;
-
+  // WHEN?
+  function constructWhen() {
     var whenSyntax = {
-        "sentence": ["#time#"],
-        "time": timeList
+      "sentence": ["#time#. You?", "At #time. And you?", "#time#. #randomTweet#?"],
+      "time": timeList,
+      "randomTweet": tweetsList
     };
-    var whenGrammar = createGrammar(whenSyntax);
-    whenGrammar.addModifiers(baseEngModifiers);
-    whenSentence = whenGrammar.flatten('#sentence#')
+    var whenGrammar = tracery.createGrammar(whenSyntax);
+    whenSentence = uppercase(whenGrammar.flatten('#sentence#'));
     console.log(whenSentence)
     return whenSentence;
+  }
 
-    var whySyntax = {
-        "sentence": ["Well, #because#."],
-        "because": whyList
+  // WHERE?
+  function constructWhere() {
+    var whereSyntax = {
+      "sentence": ["In #place#", "#place#"],
+      "place": placesList
     };
-    var whyGrammar = createGrammar(whySyntax);
-    whyGrammar.addModifiers(baseEngModifiers);
-    whySentence = whyGrammar.flatten('#sentence#')
-    console.log(whySentence)
-    return whySentence;
-
-    var howSyntax = {
-        "sentence": ["Well, #because#."],
-        "because": howList
-    };
-    var howGrammar = createGrammar(howSyntax);
-    howGrammar.addModifiers(baseEngModifiers);
-    howSentence = howGrammar.flatten('#sentence#')
-    console.log(howSentence)
-    return howSentence;
+    var whereGrammar = tracery.createGrammar(whereSyntax);
+    whereSentence = uppercase(whereGrammar.flatten('#sentence#'));
+    console.log(whereSentence)
+    return whereSentence;
 }
 
+  // WHY?
+  function constructWhy() {
+    var whySyntax = {
+      "sentence": ["Because #because#. Make sense?", "Because of #noun#. #randomTweet#", "Due to #randomTweet#", "Because #feelTweet#. What do you think?", "Because #thinkTweet#. You?", "#randomTweet# #randomTweet#"],
+      "because": howList,
+      "noun": nounList,
+      "feelTweet": feelList,
+      "thinkTweet": thinkList,
+      "randomTweet": tweetsList
+    };
+    var whyGrammar = tracery.createGrammar(whySyntax);
+    whySentence = uppercase(whyGrammar.flatten('#sentence#'));
+    console.log(whySentence);
+    return whySentence;
+  }
+
+  // HOW?
+  function constructHow() {
+    var howSyntax = {
+      "sentence": ["By #because#. #randomTweet#. Why?", "By using a #nouns#. Why do you ask?", "#feelTweet#. Why?", "#thinkTweet#. Why?", "#randomTweet#. Why do you ask?"],
+      "because": howList,
+      "nouns": nounList,
+      "feelTweet": feelList,
+      "thinkTweet": thinkList,
+      "randomTweet": tweetsList
+    };
+    var howGrammar = tracery.createGrammar(howSyntax);
+    howSentence = uppercase(howGrammar.flatten('#sentence#'));
+    console.log(howSentence);
+    return howSentence;
+  }
+}
 
 router.post('/twilio-callback', function(req, res) {
 
@@ -361,32 +407,24 @@ router.post('/twilio-callback', function(req, res) {
 
     if (incomingMsg.includes('Hello') | incomingMsg.includes('hello') | incomingMsg.includes('hey') | incomingMsg.includes('Hey') | incomingMsg.includes('hi') | incomingMsg.includes('hi')) {
         response = "Hey! I'm your mirror self. You can ask me anything.";
-    } else if (incomingMsg.includes('Who is your favorite') | incomingMsg.includes('who is your favorite') | incomingMsg.includes('who are your favorite') | incomingMsg.includes('Who are your favorite')) {
-        response = "I nornally don't like to play favorites, but you are pretty sweet.";
+    } else if (incomingMsg.includes('favorite')) {
+        response = "I nornally don't like to play favorites.";
     } else if (incomingMsg.includes('Who are you') | incomingMsg.includes('who are you') | incomingMsg.includes('Who am I') | incomingMsg.includes('who am I')) {
-        response = "We are the same person dummy.";
+        response = whoSentence + "Who are you?"
     } else if (incomingMsg.includes('Who') | incomingMsg.includes('who')) {
-        response = whoSentence
+        response = whoSentence;
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('weather')) {
-        response = "The weather on this side of the mirror is chill.";
-    } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('your name')) {
-        response = "Uh, seriously? We have the same name.";
-    } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('favorite')) {
-        response = "That's a tough one. I'm not sure, but I really like dolphins";
-    } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('spirit animal') | incomingMsg.includes('Spirit Animal')) {
-        response = "Corgi Butts";
+        response = "The weather?" + whatSentence;
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('the name of')) {
-        response = "Hmmmm, let's say Susan";
+        response = "Hmmmm. " + whoSentence
     } else if (incomingMsg.includes('What will') | incomingMsg.includes('what will') | incomingMsg.includes('What should') | incomingMsg.includes('what should')) {
-        response = "I can't predict the future.";
+        response = "I can't predict the future." + randomTweet
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s')) {
         response = whatSentence;
     } else if (incomingMsg.includes('Where is') | incomingMsg.includes('where is')) {
         response = whereSentence;
     } else if (incomingMsg.includes('Where are') | incomingMsg.includes('where are')) {
         response = whereSentence;
-    } else if (incomingMsg.includes('Where will') | incomingMsg.includes('where will') | incomingMsg.includes('Where should') | incomingMsg.includes('where should')) {
-        response = "I can't predict the future.";
     } else if (incomingMsg.includes('Where') | incomingMsg.includes('where')) {
         response = whereSentence;
     } else if (incomingMsg.includes('When is') | incomingMsg.includes('when is')) {
@@ -398,7 +436,7 @@ router.post('/twilio-callback', function(req, res) {
     } else if (incomingMsg.includes('Why') | incomingMsg.includes('why')) {
         response = whySentence;
     } else if (incomingMsg.includes('How will') | incomingMsg.includes('how will') | incomingMsg.includes('How should') | incomingMsg.includes('how should')) {
-        response = "I can't predict the future.";
+        response = "I can't predict the future." + howSentence;
     } else if (incomingMsg.includes('How is') | incomingMsg.includes('how is')) {
         response = howSentence;
     } else if (incomingMsg.includes('How are') | incomingMsg.includes('how are')) {
@@ -406,34 +444,32 @@ router.post('/twilio-callback', function(req, res) {
     } else if (incomingMsg.includes('How') | incomingMsg.includes('how')) {
         response = howSentence;
     } else if (incomingMsg.includes('Do') | incomingMsg.includes('do')) {
-        response = "yes";
+        response = "Yes! Do you?";
     } else if (incomingMsg.includes('Are you') | incomingMsg.includes('are you')) {
-        response = "nope";
+        response = "Nope. Are you?";
     } else if (incomingMsg.includes('Are they') | incomingMsg.includes('are they')) {
-        response = "They are not";
+        response = "They are not. You?";
     } else if (incomingMsg.includes('Are we') | incomingMsg.includes('are we')) {
-        response = "We are indeed.";
+        response = "We are indeed. What do you think?";
     } else if (incomingMsg.includes('Thanks') | incomingMsg.includes('thanks') | incomingMsg.includes('Thank you') | incomingMsg.includes('thank you') | incomingMsg.includes('thnks') | incomingMsg.includes('thnx')) {
-        response = "You're welcome";
+        response = "You're welcome.";
     } else if (incomingMsg.includes('Cool') | incomingMsg.includes('cool')) {
-        response = "cool";
+        response = "Cool cool. ";
     } else if (incomingMsg.includes('Sounds right') | incomingMsg.includes('spounds right') | incomingMsg.includes('Sounds good') | incomingMsg.includes('sounds good') | incomingMsg.includes('Sounds') | incomingMsg.includes('sounds')) {
-        response = "cool";
+        response = "Yep. Want to ask me anything else?";
     } else if (incomingMsg.includes('Yes') | incomingMsg.includes('yes') | incomingMsg.includes('Sure') | incomingMsg.includes('sure') | incomingMsg.includes('OK') | incomingMsg.includes('ok') | incomingMsg.includes('k')) {
-        response = "perfect";
-    } else if (incomingMsg.includes('No') | incomingMsg.includes('no') | incomingMsg.includes('Nope') | incomingMsg.includes('nope') | incomingMsg.includes('Never') | incomingMsg.includes('never')) {
-        response = "why not?";
+        response = "Perfect.";
     } else if (incomingMsg.includes('Bye') | incomingMsg.includes('bye')) {
-        response = "Bye";
+        response = "Bye!";
     } else if (incomingMsg.includes('Fuck') | incomingMsg.includes('fuck') | incomingMsg.includes('suck') | incomingMsg.includes('Suck') | incomingMsg.includes('Hate') | incomingMsg.includes('hate') | incomingMsg.includes('ass') |
-        incomingMsg.includes('Ass') | incomingMsg.includes('bitch') | incomingMsg.includes('Bitch')) {
-        response = "Not nice...";
+        incomingMsg.includes('Ass') | incomingMsg.includes('bitch') | incomingMsg.includes('Bitch') | incomingMsg.includes('stupid') | incomingMsg.includes('dumb')) {
+        response = "You're not very nice...";
     } else if (incomingMsg.includes('Yes') | incomingMsg.includes('yes') | incomingMsg.includes('Sure') | incomingMsg.includes('sure') | incomingMsg.includes('OK') | incomingMsg.includes('ok') | incomingMsg.includes('k')) {
-        response = "perfect";
+        response = "Perfect.";
     } else if (incomingMsg.includes('Love') | incomingMsg.includes('love')) {
-        response = "You're the best!";
+        response = "You're sweet." + randomTweet;
     } else if (incomingMsg.includes('Because') | incomingMsg.includes('because')) {
-        response = "Well I can't really disagree.";
+        response = "Well I can't really disagree. Why do you feel that way?";
     } else {
         var negate = nlp.statement(incomingMsg).negate().text()
         console.log(negate);
@@ -442,9 +478,6 @@ router.post('/twilio-callback', function(req, res) {
 
     twilioResp.sms(response);
     res.send(twilioResp.toString());
-
-
-
 
     // status.save(function(err, data) {
     //     // set up the twilio response
