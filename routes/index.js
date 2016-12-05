@@ -20,6 +20,17 @@ var nlp = require('nlp_compromise');
 // our db model
 var Status = require("../models/status.js");
 
+var tweet;
+
+var tweetsList = [];
+var peopleList = [];
+var placesList = [];
+var timeList = [];
+var nounList = [];
+var whyList = [];
+var howList = [];
+var thinkList = [];
+var feelList = [];
 
 /**
  * GET '/'
@@ -100,20 +111,11 @@ router.get('/profile', isLoggedIn, function(req, res) {
         count: 200
     }, function(err, data, response) {
 
-        var tweetsList = [];
-        var peopleList = [];
-        var placesList = [];
-        var timeList = [];
-        var nounList = [];
-        var whyList = [];
-        var howList = [];
-        var thinkList = [];
-        var feelList = [];
-
         // go through my tweets
 
         for (i = 0; i < data.length; i++) {
             var tweeter = data[i].text;
+            // console.log(tweeter);
 
             // CLEAN THE TWEETS
             // *****TO DO: Fix the @ clean up
@@ -121,17 +123,19 @@ router.get('/profile', isLoggedIn, function(req, res) {
 
             if (tweeter.includes("@")) {
                 tweet = tweeter.replace(/@\S+\s/g, '');
-            }
-
-            if (tweeter.includes(".@")) {
+            } else if (tweeter.includes(".@")) {
                 tweet = tweeter.replace(/.@\S+\s/g, '');
+            } else {
+              tweet = tweeter;
             }
 
             if (tweeter.includes("http")) {
                 tweet = tweeter.replace(/http\S+/g, '');
+            } else {
+              tweet = tweeter;
             }
-
-            console.log(tweet);
+            //
+            // console.log(tweet);
 
             // tweetsList.push(tweet);
 
@@ -189,11 +193,11 @@ router.get('/profile', isLoggedIn, function(req, res) {
             }
 
         }
-        // console.log(timeList);
-        // console.log(peopleList);
-        // console.log(nounList);
-        // console.log(placesList);
-        // console.log(tweetsList);
+        console.log(timeList);
+        console.log(peopleList);
+        console.log(nounList);
+        console.log(placesList);
+        console.log(tweetsList);
     })
 
     res.render('profile.ejs', {
@@ -238,46 +242,78 @@ function isLoggedIn(req, res, next) {
 
 // TAKING TRACERY SCRIPT TAG FROM BECCA'S CODE - LINE 67 of index.js
 function parseResponse(resp) {
-    var who = [];
-    var what = [];
-    var where = [];
-    var when = [];
-    var why = [];
-    var how = [];
-    var other = [];
+  // var tweetsList = [];
+  // var peopleList = [];
+  // var placesList = [];
+  // var timeList = [];
+  // var nounList = [];
+  // var whyList = [];
+  // var howList = [];
+  // var thinkList = [];
+  // var feelList = [];
 
     //the who is an array of names - add the nouns to a tracery grammar
     var whoSyntax = {
         "sentence": ["Oh, it's probably #name#."],
-        "name": who
+        "name": peopleList
     };
-
-    var whatSyntax = {
-        "sentence": ["It is a #noun#. I see a #noun#."],
-        "noun": what
-    };
-
-    var whereSyntax = {
-        "sentence": ["Could it be #place#?"],
-        "place": where
-    };
-
-    var whenSyntax = {
-        "sentence": ["#time#"],
-        "time": when
-    };
-
-    var whySyntax = {
-        "sentence": ["Well, #because#."],
-        "because": why
-    };
-
     var whoGrammar = createGrammar(whoSyntax);
     whoGrammar.addModifiers(baseEngModifiers);
     var whoSentence = whoGrammar.flatten('#sentence#')
     console.log(whoSentence)
     return whoSentence;
+
+    var whatSyntax = {
+        "sentence": ["It is a #noun#. I see a #noun#."],
+        "noun": nounList
+    };
+    var whatGrammar = createGrammar(whatSyntax);
+    whatGrammar.addModifiers(baseEngModifiers);
+    var whatSentence = whatGrammar.flatten('#sentence#')
+    console.log(whatSentence)
+    return whatSentence;
+
+    var whereSyntax = {
+        "sentence": ["Could it be #place#?"],
+        "place": placesList
+    };
+    var whereGrammar = createGrammar(whereSyntax);
+    whereGrammar.addModifiers(baseEngModifiers);
+    var whereSentence = whereGrammar.flatten('#sentence#')
+    console.log(whereSentence)
+    return whereSentence;
+
+    var whenSyntax = {
+        "sentence": ["#time#"],
+        "time": timeList
+    };
+    var whenGrammar = createGrammar(whenSyntax);
+    whenGrammar.addModifiers(baseEngModifiers);
+    var whenSentence = whenGrammar.flatten('#sentence#')
+    console.log(whenSentence)
+    return whenSentence;
+
+    var whySyntax = {
+        "sentence": ["Well, #because#."],
+        "because": whyList
+    };
+    var whyGrammar = createGrammar(whySyntax);
+    whyGrammar.addModifiers(baseEngModifiers);
+    var whySentence = whyGrammar.flatten('#sentence#')
+    console.log(whySentence)
+    return whySentence;
+
+    var howSyntax = {
+        "sentence": ["Well, #because#."],
+        "because": howList
+    };
+    var howGrammar = createGrammar(howSyntax);
+    howGrammar.addModifiers(baseEngModifiers);
+    var howSentence = howGrammar.flatten('#sentence#')
+    console.log(howSentence)
+    return howSentence;
 }
+
 
 router.post('/twilio-callback', function(req, res) {
 
@@ -321,10 +357,8 @@ router.post('/twilio-callback', function(req, res) {
         response = "I nornally don't like to play favorites, but you are pretty sweet.";
     } else if (incomingMsg.includes('Who are you') | incomingMsg.includes('who are you') | incomingMsg.includes('Who am I') | incomingMsg.includes('who am I')) {
         response = "We are the same person dummy.";
-    } else if (incomingMsg.includes('Who do you') | incomingMsg.includes('who do you')) {
-        var negate = nlp.statement(incomingMsg).negate().text()
-        console.log(negate);
-        response = negate;
+    } else if (incomingMsg.includes('Who') | incomingMsg.includes('who')) {
+        response = whoSentence
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('weather')) {
         response = "The weather on this side of the mirror is chill.";
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s') && incomingMsg.includes('your name')) {
@@ -338,31 +372,31 @@ router.post('/twilio-callback', function(req, res) {
     } else if (incomingMsg.includes('What will') | incomingMsg.includes('what will') | incomingMsg.includes('What should') | incomingMsg.includes('what should')) {
         response = "I can't predict the future.";
     } else if (incomingMsg.includes('What is') | incomingMsg.includes('what is') | incomingMsg.includes('what\'s') | incomingMsg.includes('What\'s')) {
-        response = "Corgi Butts";
+        response = whatSentence;
     } else if (incomingMsg.includes('Where is') | incomingMsg.includes('where is')) {
-        response = "Where is....";
+        response = whereSentence;
     } else if (incomingMsg.includes('Where are') | incomingMsg.includes('where are')) {
-        response = "Where are....";
+        response = whereSentence;
     } else if (incomingMsg.includes('Where will') | incomingMsg.includes('where will') | incomingMsg.includes('Where should') | incomingMsg.includes('where should')) {
         response = "I can't predict the future.";
     } else if (incomingMsg.includes('Where') | incomingMsg.includes('where')) {
-        response = "Where....";
+        response = whereSentence;
     } else if (incomingMsg.includes('When is') | incomingMsg.includes('when is')) {
-        response = "When is....";
+        response = whenSentence;
     } else if (incomingMsg.includes('When are') | incomingMsg.includes('when are')) {
-        response = "When are....";
+        response = whenSentence;
     } else if (incomingMsg.includes('When') | incomingMsg.includes('when')) {
-        response = "When....";
+        response = whenSentence;
     } else if (incomingMsg.includes('Why') | incomingMsg.includes('why')) {
-        response = "Why....";
+        response = whySentence;
     } else if (incomingMsg.includes('How will') | incomingMsg.includes('how will') | incomingMsg.includes('How should') | incomingMsg.includes('how should')) {
         response = "I can't predict the future.";
     } else if (incomingMsg.includes('How is') | incomingMsg.includes('how is')) {
-        response = "How is...";
+        response = howSentence;
     } else if (incomingMsg.includes('How are') | incomingMsg.includes('how are')) {
-        response = "How are...";
+        response = howSentence;
     } else if (incomingMsg.includes('How') | incomingMsg.includes('how')) {
-        response = "How....";
+        response = howSentence;
     } else if (incomingMsg.includes('Do') | incomingMsg.includes('do')) {
         response = "yes";
     } else if (incomingMsg.includes('Are you') | incomingMsg.includes('are you')) {
