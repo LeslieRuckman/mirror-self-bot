@@ -32,6 +32,14 @@ var howList = [];
 var thinkList = [];
 var feelList = [];
 
+
+var whoSentence;
+var whatSentence;
+var whereSentence;
+var whenSentence;
+var whySentence;
+var howSentence;
+
 /**
  * GET '/'
  * Default home route. Just relays a success message back.
@@ -259,7 +267,7 @@ function parseResponse(resp) {
     };
     var whoGrammar = createGrammar(whoSyntax);
     whoGrammar.addModifiers(baseEngModifiers);
-    var whoSentence = whoGrammar.flatten('#sentence#')
+    whoSentence = whoGrammar.flatten('#sentence#')
     console.log(whoSentence)
     return whoSentence;
 
@@ -269,7 +277,7 @@ function parseResponse(resp) {
     };
     var whatGrammar = createGrammar(whatSyntax);
     whatGrammar.addModifiers(baseEngModifiers);
-    var whatSentence = whatGrammar.flatten('#sentence#')
+    whatSentence = whatGrammar.flatten('#sentence#')
     console.log(whatSentence)
     return whatSentence;
 
@@ -279,7 +287,7 @@ function parseResponse(resp) {
     };
     var whereGrammar = createGrammar(whereSyntax);
     whereGrammar.addModifiers(baseEngModifiers);
-    var whereSentence = whereGrammar.flatten('#sentence#')
+    whereSentence = whereGrammar.flatten('#sentence#')
     console.log(whereSentence)
     return whereSentence;
 
@@ -289,7 +297,7 @@ function parseResponse(resp) {
     };
     var whenGrammar = createGrammar(whenSyntax);
     whenGrammar.addModifiers(baseEngModifiers);
-    var whenSentence = whenGrammar.flatten('#sentence#')
+    whenSentence = whenGrammar.flatten('#sentence#')
     console.log(whenSentence)
     return whenSentence;
 
@@ -299,7 +307,7 @@ function parseResponse(resp) {
     };
     var whyGrammar = createGrammar(whySyntax);
     whyGrammar.addModifiers(baseEngModifiers);
-    var whySentence = whyGrammar.flatten('#sentence#')
+    whySentence = whyGrammar.flatten('#sentence#')
     console.log(whySentence)
     return whySentence;
 
@@ -309,7 +317,7 @@ function parseResponse(resp) {
     };
     var howGrammar = createGrammar(howSyntax);
     howGrammar.addModifiers(baseEngModifiers);
-    var howSentence = howGrammar.flatten('#sentence#')
+    howSentence = howGrammar.flatten('#sentence#')
     console.log(howSentence)
     return howSentence;
 }
