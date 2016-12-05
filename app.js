@@ -5,10 +5,17 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+
+
+var port = process.env.PORT || 4000;
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var flash = require('connect-flash');
+var session = require('express-session');
+var users = require('./routes/users');
+
 var env = require('node-env-file');
-
 var app = express();
-
 // if in development mode, load .env variables
 if (app.get("env") === "development") {
     env(__dirname + '/.env');
@@ -20,8 +27,7 @@ app.db = mongoose.connect(process.env.MONGODB_URI);
 // view engine setup - this app uses Hogan-Express
 // https://github.com/vol4ok/hogan-express
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'html');
-app.set('layout','layout');
+app.set('view engine', 'ejs');
 app.engine('html', require('hogan-express'));;
 
 // uncomment after placing your favicon in /public
@@ -32,9 +38,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({ secret: 'shhsecret', resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+require('./config/passport')(passport);
+
 // our routes will be contained in routes/index.js
 var routes = require('./routes/index');
 app.use('/', routes);
+app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -67,5 +80,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
+app.listen(port);
 
 module.exports = app;
