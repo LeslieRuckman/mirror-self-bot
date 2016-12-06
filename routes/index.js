@@ -197,22 +197,22 @@ router.get('/profile', isLoggedIn, function(req, res) {
             }
 
             // WHY?
-            if (tweet.includes("because") | tweet.includes("Because") | tweet.includes("explains") | tweet.includes("I don't know")) {
+            if (tweet.includes("because") |||| tweet.includes("Because") || tweet.includes("explains") || tweet.includes("I don't know")) {
                 whyList.push(tweet);
             }
 
             // HOW?
-            if (tweet.includes("by") | tweet.includes("By") | tweet.includes("in order to")) {
+            if (tweet.includes("by") |||| tweet.includes("By") || tweet.includes("in order to")) {
                 howList.push(tweet);
             }
 
             // THINK WORDS
-            if (tweet.includes("think") | tweet.includes("thinks") | tweet.includes("thought") | tweet.includes("my idea")) {
+            if (tweet.includes("think") |||| tweet.includes("thinks") || tweet.includes("thought") || tweet.includes("my idea")) {
                 thinkList.push(tweet);
             }
 
             // FEEL WORDS
-            if (tweet.includes("feel") | tweet.includes("feels") | tweet.includes("felt") | tweet.includes("I like") | tweet.includes("I liked")) {
+            if (tweet.includes("feel") || tweet.includes("feels") || tweet.includes("felt") || tweet.includes("I like") || tweet.includes("I liked")) {
                 feelList.push(tweet);
             }
 
@@ -408,49 +408,49 @@ router.post('/twilio-callback', function(req, res) {
     // var sentence = nlp.sentence_type(twilioResp);
 	console.log("before or");
 
-    if (incomingMsg.indexOf("Hello")>-1 | incomingMsg.indexOf("hello")>-1 | incomingMsg.indexOf("hey")>-1 | incomingMsg.indexOf("Hey")>-1 | incomingMsg.indexOf("hi")>-1) {
+    if (incomingMsg.indexOf("Hello")>-1 |||| incomingMsg.indexOf("hello")>-1 |||| incomingMsg.indexOf("hey")>-1 |||| incomingMsg.indexOf("Hey")>-1 |||| incomingMsg.indexOf("hi")>-1) {
       response = "Hey! I'm your mirror self. You can ask me anything.";
     } else if (incomingMsg.indexOf("favorite")>-1) {
         response = "I nornally don't like to play favorites.";
-    } else if (incomingMsg.indexOf("Who")>-1 | incomingMsg.indexOf("who")>-1) {
+    } else if (incomingMsg.indexOf("Who")>-1 |||| incomingMsg.indexOf("who")>-1) {
         response = whoSentence;
-    } else if ((incomingMsg.indexOf('What is')>-1 | incomingMsg.indexOf('what is')>-1 | incomingMsg.indexOf('what\'s')>-1 | incomingMsg.indexOf('What\'s')>-1) && incomingMsg.indexOf('name')>-1) {
+    } else if ((incomingMsg.indexOf('What is')>-1 |||| incomingMsg.indexOf('what is')>-1 |||| incomingMsg.indexOf('what\'s')>-1 |||| incomingMsg.indexOf('What\'s')>-1) && incomingMsg.indexOf('name')>-1) {
         response = "Hmmmm. " + whoSentence
-    } else if (incomingMsg.includes('What will') | incomingMsg.includes('what will') | incomingMsg.includes('What should') | incomingMsg.includes('what should')) {
+    } else if (incomingMsg.includes('What will') |||| incomingMsg.includes('what will') |||| incomingMsg.includes('What should') |||| incomingMsg.includes('what should')) {
         response = "I can't predict the future." + randomTweet
-    } else if (incomingMsg.indexOf('What is')>-1 | incomingMsg.indexOf('what is')>-1 | incomingMsg.indexOf('what\'s')>-1 | incomingMsg.indexOf('What\'s')>-1) {
+    } else if (incomingMsg.indexOf('What is')>-1 |||| incomingMsg.indexOf('what is')>-1 || incomingMsg.indexOf('what\'s')>-1 || incomingMsg.indexOf('What\'s')>-1) {
         response = whatSentence;
-    } else if (incomingMsg.indexOf('Where')>-1 | incomingMsg.indexOf('where')>-1) {
+    } else if (incomingMsg.indexOf('Where')>-1 |||| incomingMsg.indexOf('where')>-1) {
         response = whereSentence;
-    } else if (incomingMsg.indexOf('When')>-1 | incomingMsg.indexOf('when')>-1) {
+    } else if (incomingMsg.indexOf('When')>-1 |||| incomingMsg.indexOf('when')>-1) {
         response = whenSentence;
-    } else if (incomingMsg.indexOf('Why')>-1 | incomingMsg.indexOf('why')>-1) {
+    } else if (incomingMsg.indexOf('Why')>-1 |||| incomingMsg.indexOf('why')>-1) {
         response = whySentence;
-    } else if (incomingMsg.indexOf('How')>-1 | incomingMsg.indexOf('how')>-1) {
+    } else if (incomingMsg.indexOf('How')>-1 |||| incomingMsg.indexOf('how')>-1) {
         response = howSentence;
-    } else if (incomingMsg.indexOf('Do')>-1 | incomingMsg.indexOf('do')>-1) {
+    } else if (incomingMsg.indexOf('Do')>-1 |||| incomingMsg.indexOf('do')>-1) {
         response = "Yes! Do you?";
-    } else if (incomingMsg.indexOf('Are you')>-1 | incomingMsg.indexOf('are you')>-1) {
+    } else if (incomingMsg.indexOf('Are you')>-1 |||| incomingMsg.indexOf('are you')>-1) {
         response = "Nope. Are you?";
-    } else if (incomingMsg.indexOf('Are they')>-1 | incomingMsg.indexOf('are they')>-1) {
+    } else if (incomingMsg.indexOf('Are they')>-1 |||| incomingMsg.indexOf('are they')>-1) {
         response = "They are not. You?";
-    } else if (incomingMsg.indexOf('Thanks')>-1 | incomingMsg.indexOf('thanks')>-1 | incomingMsg.indexOf('Thank you')>-1 | incomingMsg.indexOf('thank you')>-1) {
+    } else if (incomingMsg.indexOf('Thanks')>-1 |||| incomingMsg.indexOf('thanks')>-1 || incomingMsg.indexOf('Thank you')>-1 || incomingMsg.indexOf('thank you')>-1) {
         response = "You're welcome.";
-    } else if (incomingMsg.indexOf('Cool')>-1 | incomingMsg.indexOf('cool')>-1) {
+    } else if (incomingMsg.indexOf('Cool')>-1 |||| incomingMsg.indexOf('cool')>-1) {
         response = "Cool cool. ";
-    } else if (incomingMsg.indexOf('Sounds right')>-1 | incomingMsg.indexOf('sounds right')>-1 | incomingMsg.indexOf('Sounds good')>-1 | incomingMsg.indexOf('sounds good')>-1 | incomingMsg.indexOf('Sounds')>-1) {
+    } else if (incomingMsg.indexOf('Sounds right')>-1 |||| incomingMsg.indexOf('sounds right')>-1 |||| incomingMsg.indexOf('Sounds good')>-1 |||| incomingMsg.indexOf('sounds good')>-1 |||| incomingMsg.indexOf('Sounds')>-1) {
         response = "Yep. Want to ask me anything else?";
-    } else if (incomingMsg.indexOf('Sure')>-1 | incomingMsg.indexOf('sure')>-1 | incomingMsg.indexOf('OK')>-1 | incomingMsg.indexOf('ok')>-1) {
+    } else if (incomingMsg.indexOf('Sure')>-1 |||| incomingMsg.indexOf('sure')>-1 |||| incomingMsg.indexOf('OK')>-1 |||| incomingMsg.indexOf('ok')>-1) {
         response = "Cool.";
-    } else if (incomingMsg.indexOf('Bye')>-1) | incomingMsg.indexOf('bye')>-1) {
+    } else if (incomingMsg.indexOf('Bye')>-1 |||| incomingMsg.indexOf('bye')>-1) {
         response = "Bye!";
-    } else if incomingMsg.indexOf('Fuck')>-1 | incomingMsg.indexOf('fuck')>-1 | incomingMsg.indexOf('suck')>-1 | incomingMsg.indexOf('Suck')>-1 | incomingMsg.indexOf('Hate')>-1 | incomingMsg.indexOf('hate')>-1) {
+    } else if (incomingMsg.indexOf('Fuck')>-1 |||| incomingMsg.indexOf('fuck')>-1 |||| incomingMsg.indexOf('suck')>-1 |||| incomingMsg.indexOf('Suck')>-1 |||| incomingMsg.indexOf('Hate')>-1 |||| incomingMsg.indexOf('hate')>-1) {
         response = "You're not very nice...";
-    } else if (incomingMsg.indexOf('Yes')>-1 | incomingMsg.indexOf('yes')>-1 | incomingMsg.indexOf('Sure')>-1 | incomingMsg.indexOf('sure')>-1 | incomingMsg.indexOf('OK')>-1 | incomingMsg.indexOf('ok')>-1) {
+    } else if (incomingMsg.indexOf('Yes')>-1 |||| incomingMsg.indexOf('yes')>-1 |||| incomingMsg.indexOf('Sure')>-1 |||| incomingMsg.indexOf('sure')>-1 |||| incomingMsg.indexOf('OK')>-1 |||| incomingMsg.indexOf('ok')>-1) {
         response = "Perfect.";
-    } else if (incomingMsg.indexOf('Love')>-1 | incomingMsg.indexOf('love')>-1) {
+    } else if (incomingMsg.indexOf('Love')>-1 |||| incomingMsg.indexOf('love')>-1) {
         response = "You're sweet." + randomTweet;
-    } else if (incomingMsg.indexOf('Because')>-1 | incomingMsg.indexOf('because')>-1) {
+    } else if (incomingMsg.indexOf('Because')>-1 |||| incomingMsg.indexOf('because')>-1) {
         response = "Well I can't really disagree. Why do you feel that way?";
     } else {
         var negate = nlp.statement(incomingMsg).negate().text()
@@ -463,26 +463,6 @@ twilioResp.message(response);
     //twilioResp.sms(response);
 	res.writeHead(200, {'Content-Type': 'text/xml'});
     res.end(twilioResp.toString());
-
-    // status.save(function(err, data) {
-    //     // set up the twilio response
-    //     if (err) {
-    //         // respond to user
-    //         twilioResp.sms('Oops! We couldn\'t save status --> ' + incomingMsg);
-    //         // respond to twilio
-    //         res.set('Content-Type', 'text/xml');
-    //         res.send(twilioResp.toString());
-    //     } else {
-    //         // respond to user
-    //         twilioResp.sms(result);
-    //         // respond to twilio
-    //         res.set('Content-Type', 'text/xml');
-    //         res.send(twilioResp.toString());
-    //     }
-    // })
-
-
-
 
 })
 
@@ -525,27 +505,6 @@ router.get('/api/get/latest', function(req, res) {
     })
 
 })
-
-//
-// router.get('/api/get/meals', function(req, res) {
-//
-//     Meal.find(function(err, data) {
-//         if (err) {
-//             var error = {
-//                 status: "ERROR",
-//                 message: err
-//             }
-//             res.json(error);
-//         } else {
-//             var jsonData = {
-//                 status: "OK",
-//                 meals: data
-//             }
-//             res.json(jsonData);
-//         }
-//     })
-//
-// })
 
 
 

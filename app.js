@@ -15,12 +15,12 @@ var flash = require('connect-flash');
 var session = require('express-session');
 var users = require('./routes/users');
 
-var env = require('node-env-file');
+// var env = require('node-env-file');
 var app = express();
 // if in development mode, load .env variables
-if (app.get("env") === "development") {
-    env(__dirname + '/.env');
-}
+// if (app.get("env") === "development") {
+//     env(__dirname + '/.env');
+// }
 
 // connect to database
 app.db = mongoose.connect(process.env.MONGODB_URI || configAuth.MONGODB_URI);
@@ -61,15 +61,15 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.json({
-      message: err.message,
-      error: err
-    });
-  });
-}
+// if (app.get('env') === 'development') {
+//   app.use(function(err, req, res, next) {
+//     res.status(err.status || 500);
+//     res.json({
+//       message: err.message,
+//       error: err
+//     });
+//   });
+// }
 
 // production error handler
 // no stacktraces leaked to user
