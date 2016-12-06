@@ -35,6 +35,8 @@ var whenSentence;
 var whySentence;
 var howSentence;
 
+var client = twilio(configAuth.TwilioAuth.SID, configAuth.TwilioAuth.token);
+
 router.get('/twilioJSON', function(req, res) {
 
     var jsonData = {
@@ -387,7 +389,7 @@ router.post('/twilio-callback', function(req, res) {
     //     from: incomingNum
     // }
     // var status = new Status(msgToSave)
-    var twilioResp = new twilio.TwimlResponse();
+    var twilioResp = new client.TwimlResponse();
 
     // Now let's craft our response!
     // var tokens = incomingMsg.split(/\W+/);
